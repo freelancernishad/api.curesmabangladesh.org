@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Ekpay;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
 class EkpayPaymentController extends Controller
 {
@@ -13,6 +14,7 @@ class EkpayPaymentController extends Controller
     {
         $data = $request->all();
         Log::info(json_encode($data));
+        return $data;
         $sonod = Sonod::find($data['cust_info']['cust_id']);
         $trnx_id = $data['trnx_info']['mer_trnx_id'];
         $payment = payment::where('trxid', $trnx_id)->first();
@@ -182,7 +184,7 @@ class EkpayPaymentController extends Controller
     public function handlePaymentSuccess(Request $request)
     {
         $transId = $request->transId;
-        $payment = Payment::where('trxId', $transId)->first();
+      return  $payment = Payment::where('trxId', $transId)->first();
 
 
             $sonod = Sonod::find($payment->sonodId);
