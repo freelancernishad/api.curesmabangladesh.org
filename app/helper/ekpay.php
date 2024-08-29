@@ -6,6 +6,7 @@ function ekpayToken($trnx_id = 123456789, $trnx_amt = 0, $cust_info = [], $path 
 {
     $req_timestamp = date('Y-m-d H:i:s');
 
+    $FRONTEND_URL = env('FRONTEND_URL');
     $url = env('AKPAY_IPN_URL');
     $AKPAY_MER_REG_ID = env('AKPAY_MER_REG_ID');
     $AKPAY_MER_PASS_KEY = env('AKPAY_MER_PASS_KEY');
@@ -25,9 +26,9 @@ function ekpayToken($trnx_id = 123456789, $trnx_amt = 0, $cust_info = [], $path 
         ],
         'req_timestamp' => "$req_timestamp GMT+6",
         'feed_uri' => [
-            'c_uri' => "$url/$path/cancel",
-            'f_uri' => "$url/$path/fail",
-            's_uri' => "$url/$path/success"
+            'c_uri' => "$FRONTEND_URL/$path/cancel",
+            'f_uri' => "$FRONTEND_URL/$path/fail",
+            's_uri' => "$FRONTEND_URL/$path/success"
         ],
         'cust_info' => $cust_info,
         'trns_info' => [
