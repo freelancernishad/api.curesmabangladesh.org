@@ -75,7 +75,7 @@ class EkpayPaymentController extends Controller
     public function ReCallIpn(Request $request)
     {
         $trnx_id = $request->trnx_id;
-        $trans_date = date("Y-m-d", strtotime($request->trans_date));
+        $trans_date = date("Y-m-d");
         $url = env('AKPAY_API_URL');
 
         $curl = curl_init();
@@ -143,7 +143,7 @@ class EkpayPaymentController extends Controller
     {
 
         $trnx_id = $request->trnx_id;
-        $trans_date = date("Y-m-d", strtotime($request->trans_date));
+        $trans_date = date("Y-m-d");
 
         $url = env('AKPAY_API_URL');
 
