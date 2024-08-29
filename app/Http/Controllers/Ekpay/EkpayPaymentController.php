@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Ekpay;
 
+use App\Models\Doner;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class EkpayPaymentController extends Controller
 {
@@ -14,124 +15,123 @@ class EkpayPaymentController extends Controller
     {
         $data = $request->all();
         Log::info(json_encode($data));
-        return $data;
-        $sonod = Sonod::find($data['cust_info']['cust_id']);
+
+        // For debugging: return the data to see the IPN payload
+        // return $data;
+
+        // Fetch the payment record using the transaction ID
         $trnx_id = $data['trnx_info']['mer_trnx_id'];
-        $payment = payment::where('trxid', $trnx_id)->first();
+        $payment = Payment::where('trxid', $trnx_id)->first();
+
+        if (!$payment) {
+            return response()->json(['error' => 'Payment record not found'], 404);
+        }
 
         $Insertdata = [];
-        if ($data['msg_code'] == '1020') {
+
+        if ($data['msg_code'] == '1020') { // Payment successful
             $Insertdata = [
                 'status' => 'Paid',
                 'method' => $data['pi_det_info']['pi_name'],
             ];
 
-
-
-            if($payment->sonod_type=='holdingtax'){
-                $hosdingBokeya = HoldingBokeya::find($payment->sonodId);
-                // $hosdingtax= Holdingtax::find($hosdingBokeya->holdingTax_id);
-                $hosdingBokeya->update(['status'=>'Paid','payYear'=>date('Y'),'payOB'=>COB(1)]);
-            }elseif($payment->sonod_type=='Tenders_form'){
-
-
-
-                $TenderFormBuy = Tender::find($payment->sonodId);
-                $TenderFormBuy->update(['payment_status'=>'Paid']);
-
-
-                $tenderList = TenderList::find($TenderFormBuy->tender_id);
-                $unioun_name = $tenderList->union_name;
-                $deccription = "Your Tender Successfuly submited";
-                SmsNocSmsSend($deccription, $TenderFormBuy->mobile,$unioun_name);
-
-
-
-            }else{
-                $sonod->update(['khat' => 'সনদ ফি','stutus' => 'Pending', 'payment_status' => 'Paid']);
+            // If there's additional logic for successful donations, it can be added here
+            $doner = Doner::find($payment->sonodId);
+            if ($doner) {
+                $deccription = "Thank you for your donation!";
+                // $this->sendDonationConfirmation($doner, $deccription);
             }
 
-
-
-        } else {
-            $sonod->update(['khat' => 'সনদ ফি','stutus' => 'failed', 'payment_status' => 'Failed']);
-            $Insertdata = ['status' => 'Failed',];
+        } else { // Payment failed
+            $Insertdata = [
+                'status' => 'Failed',
+            ];
         }
+
+        // Store the IPN response in the payment record
         $Insertdata['ipnResponse'] = json_encode($data);
-        // return $Insertdata;
-        return $payment->update($Insertdata);
+
+        // Update the payment record with the new status and IPN response
+        $payment->update($Insertdata);
+
+        return response()->json(['message' => 'IPN processed successfully'], 200);
     }
+
+    /**
+     * Send a donation confirmation message to the donor.
+     *
+     * @param Doner $doner
+     * @param string $description
+     * @return void
+     */
+    // protected function sendDonationConfirmation(Doner $doner, string $description)
+    // {
+    //     // Assuming you have an SMS service or email service to notify the donor
+    //     SmsNocSmsSend($description, $doner->phoneNumber, 'Donation');
+    // }
+
 
 
     public function ReCallIpn(Request $request)
     {
-
         $trnx_id = $request->trnx_id;
         $trans_date = date("Y-m-d", strtotime($request->trans_date));
-
         $url = env('AKPAY_API_URL');
-
 
         $curl = curl_init();
 
-        curl_setopt_array($curl, array(
-          CURLOPT_URL => $url.'/get-status',
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => '',
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 0,
-          CURLOPT_FOLLOWLOCATION => true,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => 'POST',
-          CURLOPT_POSTFIELDS =>'{
-
-         "trnx_id":"'.$trnx_id.'",
-         "trans_date":"'.$trans_date.'"
-
-        }',
-          CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json'
-          ),
-        ));
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url . '/get-status',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode([
+                'trnx_id' => $trnx_id,
+                'trans_date' => $trans_date,
+            ]),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json'
+            ],
+        ]);
 
         $response1 = curl_exec($curl);
-
         curl_close($curl);
-         $data =  json_decode($response1);
 
-
-
-
-
-        // $data = $request->all();
-
-
+        $data = json_decode($response1);
 
         Log::info(json_encode($data));
-        $sonod = Sonod::find($data->cust_info->cust_id);
-        $trnx_id = $data->trnx_info->mer_trnx_id;
-        $payment = payment::where('trxid', $trnx_id)->first();
+
+        // Assuming the donor's ID is stored in `cust_info->cust_id`
+        $donorId = $data->cust_info->cust_id;
+
+        // Fetching the payment record using the transaction ID
+        $payment = Payment::where('trxid', $trnx_id)->first();
 
         $Insertdata = [];
         if ($data->msg_code == '1020') {
+            // Payment was successful
             $Insertdata = [
                 'status' => 'Paid',
                 'method' => $data->pi_det_info->pi_name,
             ];
-            if($payment->sonod_type=='holdingtax'){
-                $hosdingBokeya = HoldingBokeya::find($payment->sonodId);
-                // $hosdingtax= Holdingtax::find($hosdingBokeya->holdingTax_id);
-                $hosdingBokeya->update(['status'=>'Paid','payYear'=>date('Y')]);
-            }else{
-                // return  $sonod;
-                $sonod->update(['khat' => 'সনদ ফি','stutus' => 'Pending', 'payment_status' => 'Paid']);
-            }
+
+            // Update any additional logic related to successful donations here
+
         } else {
-            $sonod->update(['khat' => 'সনদ ফি','stutus' => 'failed', 'payment_status' => 'Failed']);
-            $Insertdata = ['status' => 'Failed',];
+            // Payment failed
+            $Insertdata = [
+                'status' => 'Failed',
+            ];
         }
+
+        // Store the IPN response in the payment record
         $Insertdata['ipnResponse'] = json_encode($data);
-        // return $Insertdata;
+
+        // Update the payment record with the new status and IPN response
         return $payment->update($Insertdata);
     }
 
