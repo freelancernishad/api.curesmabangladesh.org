@@ -69,10 +69,13 @@ class EkpayPaymentController extends Controller
         $trnx_id = $request->trnx_id;
         $trans_date = date("Y-m-d", strtotime($request->trans_date));
 
+        $url = env('AKPAY_API_URL');
+
+
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-          CURLOPT_URL => 'https://pg.ekpay.gov.bd/ekpaypg/v1/get-status',
+          CURLOPT_URL => $url.'/get-status',
           CURLOPT_RETURNTRANSFER => true,
           CURLOPT_ENCODING => '',
           CURLOPT_MAXREDIRS => 10,
