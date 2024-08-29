@@ -12,7 +12,7 @@ class IpAddressProtectionMiddleware
         '',
         'http://test.localhost:8000',
         'http://localhost:5173',
-        'https://api.curesmabangladesh.org',
+        'https://curesmabangladesh.org',
 
 
 
