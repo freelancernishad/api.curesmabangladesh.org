@@ -68,7 +68,7 @@ class PatientController extends Controller
             'amount' => 'required|numeric',
             'address' => 'required|string',
             'donatePurpose' => 'required|string',
-            'agreement' => 'required|boolean'
+            'agreement' => 'nullable|boolean'
         ]);
 
         if ($validator->fails()) {
