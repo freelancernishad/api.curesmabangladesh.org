@@ -57,10 +57,8 @@ class PatientController extends Controller
     }
 
 
-    public function donate(Request $request, $id)
+    public function donate(Request $request, $id = null)
     {
-
-
         $validator = Validator::make($request->all(), [
             'firstName' => 'required|string',
             'lastName' => 'required|string',
@@ -77,7 +75,6 @@ class PatientController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-
         $doner = Doner::create([
             'firstName' => $request->firstName,
             'lastName' => $request->lastName,
@@ -90,26 +87,26 @@ class PatientController extends Controller
             'agreement' => $request->agreement
         ]);
 
-        $user = User::find($id);
+        $user = $id ? User::find($id) : null;
         $amount = $request->amount;
         $applicant_mobile = $request->phoneNumber;
-        $trnx_id = $user->id . '-' . time();
-    
+        $trnx_id = ($user ? $user->id : 'guest') . '-' . time();
+
         $cust_info = [
-            "cust_email" => "",
-            "cust_id" => "$id",
-            "cust_mail_addr" => "Address",
-            "cust_mobo_no" => "$applicant_mobile",
-            "cust_name" => "Customer Name"
+            "cust_email" => $request->email,
+            "cust_id" => $id ? $id : 'guest',
+            "cust_mail_addr" => $request->address,
+            "cust_mobo_no" => $applicant_mobile,
+            "cust_name" => $request->firstName . ' ' . $request->lastName
         ];
-    
+
         $redirect_url = ekpayToken($trnx_id, $amount, $cust_info, 'payment');
-    
+
         $req_timestamp = date('Y-m-d H:i:s');
         $customerData = [
             'union' => '-',
             'trxId' => $trnx_id,
-            'sonodId' => $id,
+            'sonodId' => $id ? $id : null,
             'sonod_type' => 'patient-donate',
             'amount' => $amount,
             'applicant_mobile' => $applicant_mobile,
@@ -121,12 +118,12 @@ class PatientController extends Controller
             'month' => date('F'),
             'date' => date('Y-m-d'),
             'created_at' => $req_timestamp,
-            'donate_for' => $user->id,
+            'donate_for' => $user ? $user->id : null,
         ];
         Payment::create($customerData);
-    
+
         return $redirect_url;
-        return redirect($redirect_url);
     }
+
 
 }

@@ -111,7 +111,7 @@ foreach ($routes as $route) {
 
 
 Route::post('/patients/register', [PatientController::class, 'register']);
-Route::post('/patients/donate/{id}', [PatientController::class, 'donate']);
+Route::post('/patients/donate/{id?}', [PatientController::class, 'donate']);
 
 
 Route::get('roles', [RoleController::class, 'index']);
