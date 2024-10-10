@@ -14,6 +14,9 @@ class IpAddressProtectionMiddleware
         'http://localhost:5173',
         'http://localhost:5174',
         'https://curesmabangladesh.org',
+        'https://www.curesmabangladesh.org',
+        'https://admin.curesmabangladesh.org',
+        'https://www.admin.curesmabangladesh.org',
 
 
 
