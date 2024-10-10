@@ -36,6 +36,7 @@ class PatientController extends Controller
         }
 
         $user = User::create([
+            'name' => $request->fullName,
             'fullName' => $request->fullName,
             'relationship' => $request->relationship,
             'diagnosedForSMA' => $request->diagnosedForSMA,
