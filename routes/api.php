@@ -7,17 +7,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MacController;
 
+use App\Http\Controllers\BlogController;
+
+
+
 use App\Http\Controllers\PageController;
-
-
-
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PatientController;
+
+
 use App\Http\Controllers\VisitorController;
+
 use App\Http\Controllers\WeatherController;
-
-
 use App\Http\Controllers\api\UserController;
-
 use App\Http\Controllers\RoleUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SocialLinkController;
@@ -29,7 +31,6 @@ use App\Http\Controllers\api\OrganizationController;
 use App\Http\Controllers\Auth\admins\AdminAuthController;
 use App\Http\Controllers\Auth\students\StudentAuthController;
 use App\Http\Controllers\Auth\orgs\OrganizationAuthController;
-use App\Http\Controllers\PatientController;
 
 
 
@@ -112,6 +113,11 @@ foreach ($routes as $route) {
 
 Route::post('/patients/register', [PatientController::class, 'register']);
 Route::post('/patients/donate/{id?}', [PatientController::class, 'donate']);
+
+
+Route::post('/blogs', [BlogController::class, 'store']);  // Store blog post
+Route::get('/blogs', [BlogController::class, 'index']);   // Get all blog posts
+
 
 
 Route::get('roles', [RoleController::class, 'index']);
