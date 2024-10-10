@@ -114,6 +114,9 @@ foreach ($routes as $route) {
 Route::post('/patients/register', [PatientController::class, 'register']);
 Route::post('/patients/donate/{id?}', [PatientController::class, 'donate']);
 
+Route::put('/users/{id}/descriptions', [PatientController::class, 'updateDescriptions']);
+
+Route::get('/users', [PatientController::class, 'getUsers']);
 
 Route::post('/blogs', [BlogController::class, 'store']);  // Store blog post
 Route::get('/blogs', [BlogController::class, 'index']);   // Get all blog posts

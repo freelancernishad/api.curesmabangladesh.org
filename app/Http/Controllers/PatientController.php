@@ -128,4 +128,41 @@ class PatientController extends Controller
     }
 
 
+
+
+        // Update user descriptions
+        public function updateDescriptions(Request $request, $id)
+        {
+            // Validate the input
+            $validator = Validator::make($request->all(), [
+                'short_description' => 'nullable|string|max:255',
+                'long_description' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            // Find the user by ID
+            $user = User::findOrFail($id);
+
+            // Update the descriptions
+            $user->short_description = $request->input('short_description', $user->short_description);
+            $user->long_description = $request->input('long_description', $user->long_description);
+            $user->save();
+
+            return response()->json(['message' => 'Descriptions updated successfully', 'user' => $user], 200);
+        }
+
+
+
+        public function getUsers()
+        {
+            // Get paginated list of users, 10 per page
+            $users = User::paginate(10);
+
+            // Return users in JSON format
+            return response()->json($users, 200);
+        }
+
 }
