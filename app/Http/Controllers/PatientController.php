@@ -156,13 +156,17 @@ class PatientController extends Controller
 
 
 
-        public function getUsers()
+        public function getUsers(Request $request)
         {
-            // Get paginated list of users, 10 per page
-            $users = User::paginate(10);
-
+            // Get 'per_page' query parameter from the request, default to 10 if not provided
+            $perPage = $request->query('per_page', 10);
+        
+            // Get paginated list of users based on the per_page value
+            $users = User::paginate($perPage);
+        
             // Return users in JSON format
             return response()->json($users, 200);
         }
+        
 
 }
