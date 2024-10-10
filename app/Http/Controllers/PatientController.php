@@ -47,6 +47,7 @@ class PatientController extends Controller
             'motherMobile' => $request->motherMobile,
             'emergencyContact' => $request->emergencyContact,
             'email' => $request->email,
+            'mobile' => '01909756552',
             'presentAddress' => $request->presentAddress,
             'permanentAddress' => $request->permanentAddress,
             'agreement' => $request->agreement,
