@@ -37,3 +37,6 @@ Route::get('/files/{path}', function ($path) {
     // Serve the file from the protected disk
     return response()->file(Storage::disk('protected')->path($path));
 })->where('path', '.*');
+
+
+Route::get('/protected/image/{path}', [ImageController::class, 'show'])->where('path', '.*')->name('protected.image');

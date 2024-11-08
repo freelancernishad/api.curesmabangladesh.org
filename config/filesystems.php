@@ -41,6 +41,11 @@ return [
             'url' => env('APP_URL').'/public',
             'visibility' => 'public',
         ],
+        'protected' => [
+            'driver' => 'local',
+            'root' => storage_path('app/protected'), // Path to the protected storage folder
+        ],
+
 
         // 'public' => [
         //     'driver' => 'local',

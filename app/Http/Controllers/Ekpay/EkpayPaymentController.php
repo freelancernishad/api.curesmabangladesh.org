@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Ekpay;
 
+use App\Models\User;
 use App\Models\Doner;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -15,9 +16,6 @@ class EkpayPaymentController extends Controller
     {
         $data = $request->all();
         Log::info(json_encode($data));
-
-        // For debugging: return the data to see the IPN payload
-        // return $data;
 
         // Fetch the payment record using the transaction ID
         $trnx_id = $data['trnx_info']['mer_trnx_id'];
@@ -35,11 +33,12 @@ class EkpayPaymentController extends Controller
                 'method' => $data['pi_det_info']['pi_name'],
             ];
 
-            // If there's additional logic for successful donations, it can be added here
-            $doner = Doner::find($payment->sonodId);
-            if ($doner) {
-                $deccription = "Thank you for your donation!";
-                // $this->sendDonationConfirmation($doner, $deccription);
+            // Update the user's donated cost if `sonodId` is a user ID
+            $user = User::find($payment->sonodId);
+            if ($user) {
+                $user->increment('cost_donated', $payment->amount);
+                $description = "Thank you for your donation!";
+                // $this->sendDonationConfirmation($user, $description);
             }
 
         } else { // Payment failed
@@ -56,6 +55,7 @@ class EkpayPaymentController extends Controller
 
         return response()->json(['message' => 'IPN processed successfully'], 200);
     }
+
 
     /**
      * Send a donation confirmation message to the donor.

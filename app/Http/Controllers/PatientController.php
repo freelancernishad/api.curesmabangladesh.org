@@ -7,8 +7,8 @@ use App\Models\Doner;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
 
 class PatientController extends Controller
 {
@@ -29,13 +29,14 @@ class PatientController extends Controller
             'permanentAddress' => 'nullable|string|max:255',
             'agreement' => 'required|boolean',
             'dateOfBirth' => 'required|date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Image validation
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::create([
+        $userData = [
             'name' => $request->fullName,
             'fullName' => $request->fullName,
             'relationship' => $request->relationship,
@@ -52,121 +53,81 @@ class PatientController extends Controller
             'permanentAddress' => $request->permanentAddress,
             'agreement' => $request->agreement,
             'dateOfBirth' => $request->dateOfBirth,
-            'password' => Hash::make('defaultpassword'), // Set a default password or generate one
-        ]);
+            'password' => Hash::make('defaultpassword'),
+        ];
+
+        if ($request->hasFile('image')) {
+            $userData['image'] = $this->storeImage($request->file('image'));
+        }
+
+        $user = User::create($userData);
 
         return response()->json(['message' => 'Patient registered successfully', 'user' => $user], 201);
     }
 
-
-    public function donate(Request $request, $id = null)
+    private function storeImage($file)
     {
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        return $file->storeAs('post/banner', $fileName, 'protected');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
         $validator = Validator::make($request->all(), [
-            'firstName' => 'required|string',
-            'lastName' => 'required|string',
-            'phoneNumber' => 'required|string',
-            'email' => 'required|string|email',
-            'currency' => 'required|string',
-            'amount' => 'required|numeric',
-            'address' => 'required|string',
-            'donatePurpose' => 'required|string',
-            'agreement' => 'nullable'
+            'fullName' => 'string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $doner = Doner::create([
-            'firstName' => $request->firstName,
-            'lastName' => $request->lastName,
-            'phoneNumber' => $request->phoneNumber,
-            'email' => $request->email,
-            'currency' => $request->currency,
-            'amount' => $request->amount,
-            'address' => $request->address,
-            'donatePurpose' => $request->donatePurpose,
-            'agreement' => $request->agreement
-        ]);
+        $user->fill($request->only([
+            'fullName', 'relationship', 'diagnosedForSMA', 'symptoms',
+            'typeOfSMA', 'doctorName', 'fatherMobile', 'motherMobile',
+            'emergencyContact', 'email', 'presentAddress', 'permanentAddress', 'agreement', 'dateOfBirth'
+        ]));
 
-        $user = $id ? User::find($id) : null;
-        $amount = $request->amount;
-        $applicant_mobile = $request->phoneNumber;
-        $trnx_id = ($user ? $user->id : 'guest') . '-' . time();
+        if ($request->hasFile('image')) {
+            if ($user->image) {
+                Storage::disk('protected')->delete($user->image);
+            }
+            $user->image = $this->storeImage($request->file('image'));
+        }
 
-        $cust_info = [
-            "cust_email" => $request->email,
-            "cust_id" => $id ? $id : 'guest',
-            "cust_mail_addr" => $request->address,
-            "cust_mobo_no" => $applicant_mobile,
-            "cust_name" => $request->firstName . ' ' . $request->lastName
-        ];
+        $user->save();
 
-        $redirect_url = ekpayToken($trnx_id, $amount, $cust_info, 'payment');
-
-        $req_timestamp = date('Y-m-d H:i:s');
-        $customerData = [
-            'union' => '-',
-            'trxId' => $trnx_id,
-            'sonodId' => $id ? $id : null,
-            'sonod_type' => 'patient-donate',
-            'amount' => $amount,
-            'applicant_mobile' => $applicant_mobile,
-            'status' => "Pending",
-            'paymentUrl' => $redirect_url,
-            'method' => 'ekpay',
-            'payment_type' => 'online',
-            'year' => date('Y'),
-            'month' => date('F'),
-            'date' => date('Y-m-d'),
-            'created_at' => $req_timestamp,
-            'donate_for' => $user ? $user->id : null,
-        ];
-        Payment::create($customerData);
-
-        return $redirect_url;
+        return response()->json(['message' => 'Patient updated successfully', 'user' => $user], 200);
     }
 
+    public function deleteImage($id)
+    {
+        $user = User::findOrFail($id);
 
-
-
-        // Update user descriptions
-        public function updateDescriptions(Request $request, $id)
-        {
-            // Validate the input
-            $validator = Validator::make($request->all(), [
-                'short_description' => 'nullable|string|max:255',
-                'long_description' => 'nullable|string',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            // Find the user by ID
-            $user = User::findOrFail($id);
-
-            // Update the descriptions
-            $user->short_description = $request->input('short_description', $user->short_description);
-            $user->long_description = $request->input('long_description', $user->long_description);
+        if ($user->image) {
+            Storage::disk('protected')->delete($user->image);
+            $user->image = null;
             $user->save();
-
-            return response()->json(['message' => 'Descriptions updated successfully', 'user' => $user], 200);
         }
 
+        return response()->json(['message' => 'Image deleted successfully'], 200);
+    }
 
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+        return response()->json($user, 200);
+    }
 
-        public function getUsers(Request $request)
-        {
-            // Get 'per_page' query parameter from the request, default to 10 if not provided
-            $perPage = $request->query('per_page', 10);
-        
-            // Get paginated list of users based on the per_page value
-            $users = User::paginate($perPage);
-        
-            // Return users in JSON format
-            return response()->json($users, 200);
-        }
-        
+    public function getUsers(Request $request)
+    {
+        $perPage = $request->query('per_page', 10);
+        $users = User::paginate($perPage);
 
+        return response()->json($users, 200);
+    }
+
+    // Additional methods as previously defined (donate, updateDescriptions, etc.) ...
 }

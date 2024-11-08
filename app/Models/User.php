@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
+        'image',
         'mobile',
         'blood_group',
         'email',
@@ -50,6 +52,7 @@ class User extends Authenticatable implements JWTSubject
         'dateOfBirth',
         'annual_cost',
         'total_cost',
+        'cost_donated',
         'donate_for',  // Added this line
         'short_description',  // Add short_description here
         'long_description',   // Add long_description here
@@ -140,6 +143,15 @@ class User extends Authenticatable implements JWTSubject
     public function user()
     {
         return $this->belongsTo(User::class, 'donate_for');
+    }
+
+    // Add computed properties to the $appends array
+    protected $appends = ['image_url'];
+
+    // Accessor for the image URL
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? Storage::disk('protected')->url($this->image) : null;
     }
 
 }
