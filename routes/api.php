@@ -115,7 +115,7 @@ Route::post('/patients/register', [PatientController::class, 'register']);
 Route::post('/patients/donate/{id?}', [PatientController::class, 'donate']);
 
 Route::put('/users/{id}/descriptions', [PatientController::class, 'updateDescriptions']);
-Route::put('/users/{id}/update', [PatientController::class, 'updateDescriptions']);
+Route::post('/users/{id}/update', [PatientController::class, 'updateDescriptions']);
 
 Route::get('/users', [PatientController::class, 'getUsers']);
 Route::get('/users/{id}', [PatientController::class, 'show']);

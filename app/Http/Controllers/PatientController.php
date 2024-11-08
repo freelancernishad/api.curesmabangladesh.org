@@ -71,35 +71,49 @@ class PatientController extends Controller
         return $file->storeAs('post/banner', $fileName, 'protected');
     }
 
-    public function update(Request $request, $id)
+    public function updateDescriptions(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-
+        // return $request->all();
+        // Validate the input
         $validator = Validator::make($request->all(), [
-            'fullName' => 'string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'short_description' => 'nullable|string|max:255',
+            'long_description' => 'nullable|string',
+            'annual_cost' => 'nullable',
+            'total_cost' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate image
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user->fill($request->only([
-            'fullName', 'relationship', 'diagnosedForSMA', 'symptoms',
-            'typeOfSMA', 'doctorName', 'fatherMobile', 'motherMobile',
-            'emergencyContact', 'email', 'presentAddress', 'permanentAddress', 'agreement', 'dateOfBirth'
-        ]));
+        // Find the user by ID
+        $user = User::findOrFail($id);
 
+        // Check if a new image file is uploaded
         if ($request->hasFile('image')) {
+            // Delete the old image if it exists
             if ($user->image) {
                 Storage::disk('protected')->delete($user->image);
             }
-            $user->image = $this->storeImage($request->file('image'));
+
+            // Store the new image
+            $file = $request->file('image');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('user_images', $fileName, 'protected');
+
+            // Update the user's image path
+            $user->image = $filePath;
         }
 
+        // Update the descriptions and other fields
+        $user->short_description = $request->input('short_description', $user->short_description);
+        $user->long_description = $request->input('long_description', $user->long_description);
+        $user->annual_cost = $request->input('annual_cost', $user->annual_cost);
+        $user->total_cost = $request->input('total_cost', $user->total_cost);
         $user->save();
 
-        return response()->json(['message' => 'Patient updated successfully', 'user' => $user], 200);
+        return response()->json(['message' => 'Descriptions and image updated successfully', 'user' => $user], 200);
     }
 
     public function deleteImage($id)

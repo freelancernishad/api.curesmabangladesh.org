@@ -146,12 +146,13 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Add computed properties to the $appends array
-    protected $appends = ['image_url'];
+    protected $appends = ['profile_image'];
 
     // Accessor for the image URL
-    public function getImageUrlAttribute()
+    public function getProfileImageAttribute()
     {
-        return $this->image ? Storage::disk('protected')->url($this->image) : null;
+        return $this->image ? route('protected.image', ['path' => $this->image]) : null;
     }
+
 
 }
