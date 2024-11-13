@@ -143,5 +143,79 @@ class PatientController extends Controller
         return response()->json($users, 200);
     }
 
+
+
+
+    public function donate(Request $request, $id = null)
+    {
+        $validator = Validator::make($request->all(), [
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
+            'phoneNumber' => 'required|string',
+            'email' => 'required|string|email',
+            'currency' => 'required|string',
+            'amount' => 'required|numeric',
+            'address' => 'required|string',
+            'donatePurpose' => 'required|string',
+            'agreement' => 'nullable'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $doner = Doner::create([
+            'firstName' => $request->firstName,
+            'lastName' => $request->lastName,
+            'phoneNumber' => $request->phoneNumber,
+            'email' => $request->email,
+            'currency' => $request->currency,
+            'amount' => $request->amount,
+            'address' => $request->address,
+            'donatePurpose' => $request->donatePurpose,
+            'agreement' => $request->agreement
+        ]);
+
+        $user = $id ? User::find($id) : null;
+        $amount = $request->amount;
+        $applicant_mobile = $request->phoneNumber;
+        $trnx_id = ($user ? $user->id : 'guest') . '-' . time();
+
+        $cust_info = [
+            "cust_email" => $request->email,
+            "cust_id" => $id ? $id : 'guest',
+            "cust_mail_addr" => $request->address,
+            "cust_mobo_no" => $applicant_mobile,
+            "cust_name" => $request->firstName . ' ' . $request->lastName
+        ];
+
+        $redirect_url = ekpayToken($trnx_id, $amount, $cust_info, 'payment');
+
+        $req_timestamp = date('Y-m-d H:i:s');
+        $customerData = [
+            'union' => '-',
+            'trxId' => $trnx_id,
+            'sonodId' => $id ? $id : null,
+            'sonod_type' => 'patient-donate',
+            'amount' => $amount,
+            'applicant_mobile' => $applicant_mobile,
+            'status' => "Pending",
+            'paymentUrl' => $redirect_url,
+            'method' => 'ekpay',
+            'payment_type' => 'online',
+            'year' => date('Y'),
+            'month' => date('F'),
+            'date' => date('Y-m-d'),
+            'created_at' => $req_timestamp,
+            'donate_for' => $user ? $user->id : null,
+        ];
+        Payment::create($customerData);
+
+        return $redirect_url;
+    }
+
+
+
+
     // Additional methods as previously defined (donate, updateDescriptions, etc.) ...
 }
