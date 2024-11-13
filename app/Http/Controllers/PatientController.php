@@ -189,7 +189,7 @@ class PatientController extends Controller
             "cust_name" => $request->firstName . ' ' . $request->lastName
         ];
 
-        $redirect_url = ekpayToken($trnx_id, $amount, $cust_info, 'payment');
+       return $redirect_url = ekpayToken($trnx_id, $amount, $cust_info, 'payment');
 
         $req_timestamp = date('Y-m-d H:i:s');
         $customerData = [
