@@ -60,7 +60,7 @@ function ekpayToken($trnx_id = 123456789, $trnx_amt = 0, $cust_info = [], $path 
     curl_close($ch);
 
     Log::info($response);
-    $response = json_decode($response);
+   return $response = json_decode($response);
     $sToken = $response->secure_token;
 
     return "$Apiurl?sToken=$sToken&trnsID=$trnx_id";
