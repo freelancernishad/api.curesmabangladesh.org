@@ -17,7 +17,7 @@ class PaymentController extends Controller
     public function getPaymentsByDonationStatus(Request $request)
     {
         // Check for the 'withDonation' query parameter
-         $DonationType = $request->DonationType;
+         $DonationType = $request->donation_type;
 
         // Get the 'per_page' query parameter (default to 10 if not provided)
         $perPage = $request->query('per_page', 10);
