@@ -16,8 +16,9 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PatientController;
 
 
-use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\PaymentController;
 
+use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\RoleUserController;
@@ -113,6 +114,10 @@ foreach ($routes as $route) {
 
 Route::post('/patients/register', [PatientController::class, 'register']);
 Route::post('/patients/donate/{id?}', [PatientController::class, 'donate']);
+Route::get('/transitions', [PaymentController::class, 'getPaymentsByDonationStatus']);
+
+
+
 
 Route::put('/users/{id}/descriptions', [PatientController::class, 'updateDescriptions']);
 Route::post('/users/{id}/update', [PatientController::class, 'updateDescriptions']);

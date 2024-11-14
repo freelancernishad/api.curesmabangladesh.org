@@ -195,6 +195,7 @@ class PatientController extends Controller
         $customerData = [
             'union' => '-',
             'trxId' => $trnx_id,
+            'donate_for' => $id ? $id : null,
             'sonodId' => $id ? $id : null,
             'sonod_type' => 'patient-donate',
             'amount' => $amount,
