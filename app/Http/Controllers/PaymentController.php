@@ -31,7 +31,7 @@ class PaymentController extends Controller
             if ($withDonation==true) {
                 // Include only "Paid" payments with a value in 'donate_for'
                 $paymentsQuery->whereNotNull('donate_for');
-            } else if ($withDonation==false)  {
+            } elseif ($withDonation==false)  {
                 // Include only "Paid" payments without a value in 'donate_for'
                 $paymentsQuery->whereNull('donate_for');
             }
