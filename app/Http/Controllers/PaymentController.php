@@ -38,7 +38,7 @@ class PaymentController extends Controller
         }
 
         // Paginate the payments based on the query parameters (per_page and page)
-        $payments = $paymentsQuery->paginate($perPage);
+        $payments = $paymentsQuery->orderBy('id','desc')->paginate($perPage);
 
         // Return the paginated result as JSON
         return response()->json($payments);
