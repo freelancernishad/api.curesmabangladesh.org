@@ -17,7 +17,7 @@ class PaymentController extends Controller
     public function getPaymentsByDonationStatus(Request $request)
     {
         // Check for the 'withDonation' query parameter
-         $withDonation = $request->query('withDonation');
+         $withDonation = $request->withDonation;
 
         // Get the 'per_page' query parameter (default to 10 if not provided)
         $perPage = $request->query('per_page', 10);
@@ -28,10 +28,10 @@ class PaymentController extends Controller
 
         // Apply the 'donate_for' filter based on the 'withDonation' query parameter
 
-            if ($withDonation==true) {
+            if ($withDonation=='withuser') {
                 // Include only "Paid" payments with a value in 'donate_for'
                 $paymentsQuery->whereNotNull('donate_for');
-            } elseif ($withDonation==false)  {
+            } elseif ($withDonation=='withoutuser')  {
                 // Include only "Paid" payments without a value in 'donate_for'
                 $paymentsQuery->whereNull('donate_for');
             }
