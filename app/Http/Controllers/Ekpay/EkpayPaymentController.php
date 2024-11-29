@@ -42,15 +42,15 @@ class EkpayPaymentController extends Controller
                 $doner = Doner::find($payment->sonodId);
 
                 $DonarName =  $doner->firstName. ' '.$doner->lastName;
-
-                $message1 = "Dear $DonarName, আপনার অনুদানের জন্য আপনাকে ধন্যবাদ। আপনার সহযোগিতার জন্য আমরা কৃতজ্ঞ";
-                sendSms($doner->phoneNumber,$message1);
-
-                $message2 = "Dear $DonarName এর নিকট হতে $doner->amount টাকা ডোনেশন সংগ্রহ হয়েছে";
-                sendSms("01909756552",$message2);
-
-
             }
+
+
+            
+            $message1 = "Dear $DonarName, আপনার অনুদানের জন্য আপনাকে ধন্যবাদ। আপনার সহযোগিতার জন্য আমরা কৃতজ্ঞ";
+            sendSms($doner->phoneNumber,$message1);
+
+            $message2 = "Dear $DonarName এর নিকট হতে $doner->amount টাকা ডোনেশন সংগ্রহ হয়েছে";
+            sendSms("01909756552",$message2);
 
         } else { // Payment failed
             $Insertdata = [
