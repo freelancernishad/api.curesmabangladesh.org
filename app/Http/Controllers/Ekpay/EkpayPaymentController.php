@@ -39,13 +39,15 @@ class EkpayPaymentController extends Controller
                 $user->increment('cost_donated', $payment->amount);
                 $description = "Thank you for your donation!";
                 // $this->sendDonationConfirmation($user, $description);
-                $doner = Doner::find($payment->sonodId);
 
-                $DonarName =  $doner->firstName. ' '.$doner->lastName;
             }
 
 
-            
+            $doner = Doner::find($payment->sonodId);
+            $DonarName =  $doner->firstName. ' '.$doner->lastName;
+
+
+
             $message1 = "Dear $DonarName, আপনার অনুদানের জন্য আপনাকে ধন্যবাদ। আপনার সহযোগিতার জন্য আমরা কৃতজ্ঞ";
             sendSms($doner->phoneNumber,$message1);
 
