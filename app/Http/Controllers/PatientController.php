@@ -62,6 +62,15 @@ class PatientController extends Controller
 
         $user = User::create($userData);
 
+
+        $message1 = "Dear $request->fullName, রেজিস্ট্রেশন এর আবেদনটি সম্পন্ন হয়েছে , অতিসত্তর আপনার সাথে যোগাযোগ করা হবে";
+        sendSms($request->fatherMobile,$message1);
+
+        $message2 = "Dear Admin, $request->fullName, রেজিস্ট্রেশন এর আবেদনটি সম্পন্ন করেছে , যোগাযোগ: $request->fatherMobile";
+        sendSms("01909756552",$message2);
+
+
+
         return response()->json(['message' => 'Patient registered successfully', 'user' => $user], 201);
     }
 
@@ -73,14 +82,27 @@ class PatientController extends Controller
 
     public function updateDescriptions(Request $request, $id)
     {
-        // return $request->all();
         // Validate the input
         $validator = Validator::make($request->all(), [
             'short_description' => 'nullable|string|max:255',
             'long_description' => 'nullable|string',
-            'annual_cost' => 'nullable',
-            'total_cost' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate image
+            'annual_cost' => 'nullable|numeric',
+            'total_cost' => 'nullable|numeric',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'fullName' => 'nullable|string|max:255',
+            'relationship' => 'nullable|string|max:255',
+            'diagnosedForSMA' => 'nullable|string|max:255',
+            'symptoms' => 'nullable|string|max:255',
+            'typeOfSMA' => 'nullable|string|max:255',
+            'doctorName' => 'nullable|string|max:255',
+            'fatherMobile' => 'nullable|string|max:15',
+            'motherMobile' => 'nullable|string|max:15',
+            'emergencyContact' => 'nullable|string|max:15',
+            'email' => 'nullable|email|max:255',
+            'presentAddress' => 'nullable|string|max:255',
+            'permanentAddress' => 'nullable|string|max:255',
+            'agreement' => 'nullable|boolean',
+            'dateOfBirth' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -92,29 +114,48 @@ class PatientController extends Controller
 
         // Check if a new image file is uploaded
         if ($request->hasFile('image')) {
-            // Delete the old image if it exists
             if ($user->image) {
                 Storage::disk('protected')->delete($user->image);
             }
 
-            // Store the new image
             $file = $request->file('image');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('user_images', $fileName, 'protected');
-
-            // Update the user's image path
             $user->image = $filePath;
         }
 
-        // Update the descriptions and other fields
-        $user->short_description = $request->input('short_description', $user->short_description);
-        $user->long_description = $request->input('long_description', $user->long_description);
-        $user->annual_cost = $request->input('annual_cost', $user->annual_cost);
-        $user->total_cost = $request->input('total_cost', $user->total_cost);
-        $user->save();
+        // Update the fields with either new values or existing values
+        $user->update([
+            'short_description' => $request->input('short_description', $user->short_description),
+            'long_description' => $request->input('long_description', $user->long_description),
+            'annual_cost' => $request->input('annual_cost', $user->annual_cost),
+            'total_cost' => $request->input('total_cost', $user->total_cost),
+            'name' => $request->input('fullName', $user->name),
+            'fullName' => $request->input('fullName', $user->fullName),
+            'relationship' => $request->input('relationship', $user->relationship),
+            'diagnosedForSMA' => $request->input('diagnosedForSMA', $user->diagnosedForSMA),
+            'symptoms' => $request->input('symptoms', $user->symptoms),
+            'typeOfSMA' => $request->input('typeOfSMA', $user->typeOfSMA),
+            'doctorName' => $request->input('doctorName', $user->doctorName),
+            'fatherMobile' => $request->input('fatherMobile', $user->fatherMobile),
+            'motherMobile' => $request->input('motherMobile', $user->motherMobile),
+            'emergencyContact' => $request->input('emergencyContact', $user->emergencyContact),
+            'email' => $request->input('email', $user->email),
+            'mobile' => $user->mobile ?? '01909756552', // Preserve existing or default
+            'presentAddress' => $request->input('presentAddress', $user->presentAddress),
+            'permanentAddress' => $request->input('permanentAddress', $user->permanentAddress),
+            'agreement' => $request->input('agreement', $user->agreement),
+            'dateOfBirth' => $request->input('dateOfBirth', $user->dateOfBirth),
+            'status' => 'active',
+        ]);
 
-        return response()->json(['message' => 'Descriptions and image updated successfully', 'user' => $user], 200);
+        $message1 = "Dear $request->fullName, আপনার রেজিস্ট্রেশন সম্পন্ন হয়েছে";
+        sendSms($request->fatherMobile,$message1);
+
+
+        return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
     }
+
 
     public function deleteImage($id)
     {
@@ -196,7 +237,7 @@ class PatientController extends Controller
             'union' => '-',
             'trxId' => $trnx_id,
             'donate_for' => $id ? $id : null,
-            'sonodId' => $id ? $id : null,
+            'sonodId' => $doner->id ? $doner->id : null,
             'sonod_type' => 'patient-donate',
             'amount' => $amount,
             'applicant_mobile' => $applicant_mobile,

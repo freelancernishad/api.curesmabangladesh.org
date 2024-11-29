@@ -56,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
         'donate_for',  // Added this line
         'short_description',  // Add short_description here
         'long_description',   // Add long_description here
+        'status',
     ];
 
     /**
