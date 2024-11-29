@@ -35,7 +35,7 @@ class BlogController extends Controller
     public function index()
     {
         // Get all blog posts
-        $blogs = Blog::all()->map(function ($blog) {
+        $blogs = Blog::orderBy('id','desc')->get()->map(function ($blog) {
             // Add the full image URL if it exists
             if ($blog->image) {
                 $blog->image_url = route('protected.image', ['path' => $blog->image]);
