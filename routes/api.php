@@ -129,7 +129,7 @@ Route::get('/users/{id}', [PatientController::class, 'show']);
 Route::post('/blogs', [BlogController::class, 'store']);  // Store blog post
 Route::get('/blogs', [BlogController::class, 'index']);   // Get all blog posts
 Route::get('/blogs/{id}', [BlogController::class, 'show']);      // Show a single blog post
-Route::put('/blogs/{id}', [BlogController::class, 'update']);    // Update an existing blog post
+Route::post('/blogs/{id}', [BlogController::class, 'update']);    // Update an existing blog post
 Route::delete('/blogs/{id}', [BlogController::class, 'destroy']); // Delete a blog post
 
 
